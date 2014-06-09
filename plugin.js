@@ -4,7 +4,7 @@
  */
 
 var util = require('util');
-var ZSPlugin = require('zs-plugin-base');
+var ZSPlugin = require('zsapi-plugin-base');
 var LoggerTransports = require('./logger-transports');
 var $ = require('zs-jq-stub');
 var logLevels = LoggerTransports.logLevels;
