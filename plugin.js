@@ -26,7 +26,7 @@ function ZSLogger(zs) {
 	var self = this;
 
 	// Call the ZSPlugin superconstructor
-	ZSPlugin.call(this, zs, 'zs-logger');
+	ZSPlugin.call(this, zs, 'zs-logger', __dirname);
 
 	// Load clustercomm
 	this.clustercomm = zs.plugins.get('cluster-comm');
@@ -47,6 +47,7 @@ function ZSLogger(zs) {
 	// Alias the logger on ZS
 	zs.logger = this.logger;
 }
+util.inherits(ZSLogger, ZSPlugin);
 
 // Transform a variable set of arguments into a log entry and a callback
 ZSLogger.prototype.makeEntryFromArguments = function(args, opts) {
@@ -213,7 +214,6 @@ ZSLogger.prototype.subsystem = function(subsystem) {
 	return self.makeLogger({ subsystem: subsystem });
 };
 
-util.inherits(ZSLogger, ZSPlugin);
 module.exports = ZSLogger;
 module.exports.pluginName = 'zs-logger';
 
