@@ -1,0 +1,21 @@
+{
+  "name": "zs-logger",
+  "version": "0.0.1",
+  "private": true,
+  "description": "lgr",
+  "main": "./plugin.js",
+  "repository": {
+    "type": "git",
+    "url": "git@git.zipscene.com:zsapiplugins/zs-logger.git"
+  },
+  "scripts": {
+    "lint": "node node_modules/zs-linter/scripts/zslint"
+  },
+  "dependencies": {
+    "winston": "^0.7.3",
+    "zs-linter": "git+ssh://git@git.zipscene.com:zsapicore/zs-linter.git",
+    "zsapi-plugin-base": "git+ssh://git@git.zipscene.com:zsapicore/zsapi-plugin-base.git#v0.0.1",
+    "zs-jq-stub": "git+ssh://git@git.zipscene.com:zsapilibs/zs-jq-stub.git#v0.0.1"
+  },
+  "devDependencies": {}
+}
