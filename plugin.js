@@ -6,6 +6,7 @@
 var util = require('util');
 var ZSPlugin = require('zsapi-plugin-base');
 var LoggerTransports = require('./logger-transports');
+var ZSError = require('zs-error');
 var $ = require('zs-jq-stub');
 var logLevels = LoggerTransports.logLevels;
 
@@ -211,7 +212,7 @@ ZSLogger.prototype.makeLogger = function(opts, filter) {
 };
 
 ZSLogger.prototype.subsystem = function(subsystem) {
-	return self.makeLogger({ subsystem: subsystem });
+	return this.makeLogger({ subsystem: subsystem });
 };
 
 module.exports = ZSLogger;

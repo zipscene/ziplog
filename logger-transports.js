@@ -15,7 +15,6 @@ var logLevels = {
 	error: 5
 };
 
-
 function LoggerTransports(rootDir, config) {
 	var directory = config.directory || (rootDir + '/logs');
 	var loggerName = config.loggerName;
