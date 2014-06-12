@@ -208,6 +208,9 @@ ZSLogger.prototype.makeLogger = function(opts, filter) {
 		}
 		logThroughFilter(entry, cb);
 	};
+	logger.subsystem = function(subsystem) {
+		return self.subsystem(subsystem);
+	};
 	return logger;
 };
 
