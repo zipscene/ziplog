@@ -6,7 +6,7 @@
 var util = require('util');
 var ZSPlugin = require('zsapi-plugin-base');
 var LoggerTransports = require('./logger-transports');
-//var ZSError = require('zs-error');
+var ZSError = require('zs-error');
 var $ = require('zs-jq-stub');
 var logLevels = LoggerTransports.logLevels;
 
@@ -71,7 +71,8 @@ ZSLogger.prototype.makeEntryFromArguments = function(args, opts) {
 	// divide arguments into strings, errors, objects, and functions
 	args.forEach(function(arg) {
 		if(typeof arg == 'string') strArgs.push(arg);
-		else if(arg instanceof Error || arg.name == 'ZSError') errArgs.push(arg);
+		else if(ZSError.isZSError(arg)) errArgs.push(arg);
+		else if(arg instanceof Error) errArgs.push(new ZSError(arg));
 		else if(typeof arg == 'function') funcArgs.push(arg);
 		else objArgs.push(arg);
 	});
