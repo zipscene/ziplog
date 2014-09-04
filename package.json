@@ -1,6 +1,6 @@
 {
   "name": "zs-logger",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "private": true,
   "description": "lgr",
   "main": "./plugin.js",
@@ -16,7 +16,7 @@
     "zs-linter": "git+ssh://git@git.zipscene.com:zsapicore/zs-linter.git",
     "zsapi-plugin-base": "git+ssh://git@git.zipscene.com:zsapicore/zsapi-plugin-base.git#v0.0.1",
     "zs-jq-stub": "git+ssh://git@git.zipscene.com:zsapilibs/zs-jq-stub.git#v0.0.1",
-    "zs-error": "git+ssh://git@git.zipscene.com:zsapicore/zs-error.git#v0.0.6"
+    "zs-error": "git+ssh://git@git.zipscene.com:zsapicore/zs-error.git#v0.0.7"
   },
   "devDependencies": {}
 }
