@@ -43,7 +43,8 @@ function LoggerTransports(rootDir, config) {
 					handleExceptions: false
 				})
 			],
-			levels: logLevels
+			levels: logLevels,
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 		generalLogger = new (winston.Logger)({
@@ -59,7 +60,8 @@ function LoggerTransports(rootDir, config) {
 					level: 'warn'
 				})
 			],
-			levels: logLevels
+			levels: logLevels,
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 		detailsLogger = new (winston.Logger)({
@@ -72,7 +74,8 @@ function LoggerTransports(rootDir, config) {
 					handleExceptions: false
 				})
 			],
-			levels: logLevels
+			levels: logLevels,
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 		errorLogger = new (winston.Logger)({
@@ -84,7 +87,8 @@ function LoggerTransports(rootDir, config) {
 					level: 'error',
 					handleExceptions: true
 				})
-			]
+			],
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 	} else if(loggerName == 'devLogger') {
@@ -102,7 +106,8 @@ function LoggerTransports(rootDir, config) {
 					level: 'debug'
 				})
 			],
-			levels: logLevels
+			levels: logLevels,
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 		generalLogger = new (winston.Logger)({
@@ -118,7 +123,8 @@ function LoggerTransports(rootDir, config) {
 					level: 'debug'
 				})
 			],
-			levels: logLevels
+			levels: logLevels,
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 		detailsLogger = new (winston.Logger)({
@@ -131,7 +137,8 @@ function LoggerTransports(rootDir, config) {
 					handleExceptions: false
 				})
 			],
-			levels: logLevels
+			levels: logLevels,
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 		errorLogger = new (winston.Logger)({
@@ -143,7 +150,8 @@ function LoggerTransports(rootDir, config) {
 					level: 'error',
 					handleExceptions: true
 				})
-			]
+			],
+			exitOnError: false	// this is handled by main zsapi
 		});
 
 	} else {
