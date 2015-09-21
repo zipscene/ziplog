@@ -23,39 +23,36 @@ describe('zs-logger', () => {
 
 	it('should log info to main.log, main.json.log, details.json.log and in expected format', function() {
 		let client = new ZSLogger.LoggerClient({});
-		return client
-			.info('This is a message', { key: 'some data' })
-			.then(() => {
-				return new Promise((resolve, reject) => {
-					setTimeout(() => {
-						readdir(path.resolve(`./log/combined/`))
-							.then(files => {
-								expect(files).to.include(`main.log.${dateStr}`);
-								expect(files).to.include(`main.json.log.${dateStr}`);
-								expect(files).to.include(`details.json.log.${dateStr}`);
-								resolve();
-							})
-							.catch(reject);
-					}, 1000);					
-				});
-			})
-			.then(() => {
-				return readdir(path.resolve(`./log/general/`))
+		client.info('This is a message', { key: 'some data' });
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				readdir(path.resolve(`./log/combined/`))
 					.then(files => {
 						expect(files).to.include(`main.log.${dateStr}`);
 						expect(files).to.include(`main.json.log.${dateStr}`);
 						expect(files).to.include(`details.json.log.${dateStr}`);
-					});
-			})
-			.then(() => {
-				return new Promise((resolve, reject) => {
-					exec(`tail -n2 ./log/general/main.log.${dateStr}`, (err, stdout) => {
-						if (err) return reject(err);
-						expect(stdout).to.include(`message: This is a message${os.EOL}`);
-						return resolve();
-					});
+						resolve();
+					})
+					.catch(reject);
+			}, 1000);
+		})
+		.then(() => { return readdir(path.resolve(`./log/general/`)); })
+		.then(files => {
+			expect(files).to.include(`main.log.${dateStr}`);
+			expect(files).to.include(`main.json.log.${dateStr}`);
+			expect(files).to.include(`details.json.log.${dateStr}`);
+		})
+		.then(() => {
+			return new Promise((resolve, reject) => {
+				exec(`tail -n2 ./log/general/main.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+					expect(stdout).to.include(`message: This is a message${os.EOL}`);
+					return resolve();
 				});
 			});
+		});
+
 	});
 
 	it('should log error to all log files', function() {
