@@ -77,6 +77,22 @@ describe('zs-logger', () => {
 
 	});
 
+	it('should log an entry of level error', () => {
+		globalClient.log('error', new Error('A test error'));
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n6 ./log/general/main.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+					expect(stdout).to.contain('level: error');
+					expect(stdout).to.contain('subsystem', 'general');
+					expect(stdout).to.contain('timestamp');
+					return resolve();
+				});
+			}, 1000);
+		});
+	});
+
 	it('should log an entry of level silly', function() {
 		this.timeout(3000);
 		globalClient.silly('A silly message', { key: 'silly data' });
@@ -186,6 +202,24 @@ describe('zs-logger', () => {
 			});
 	});
 
+	it('should ignore errors other than first when logging multiple', () => {
+		return globalClient
+			.error(new Error('first error'), new Error('second error'), new Error('third error'))
+			.then(() => {
+				return new Promise((resolve, reject) => {
+					setTimeout(() => {
+						exec(`tail -n2 ./log/general/error-details.json.log.${dateStr}`, (err, stdout) => {
+							if (err) return reject(err);
+							expect(stdout).to.contain('first error');
+							expect(stdout).to.not.contain('second error');
+							expect(stdout).to.not.contain('third error');
+							return resolve();
+						});
+					}, 1000);
+				});
+			});
+	});
+
 	it('should log error in sub folder /test for sub system `test`', () => {
 		let client = new ZSLogger.LoggerClient({ subsystem: 'test' });
 		return client
@@ -209,7 +243,42 @@ describe('zs-logger', () => {
 			});
 	});
 
-	it('should log with input with input of message, data, details', function() {
+	it('should merge multiple objects into details field', () => {
+		globalClient
+			.debug({
+				name: 'foo',
+				ID: 'test ID'
+			}, {
+				text: 'super long text',
+				text3: 'some other text'
+			}, {
+				text: 'not long text',
+				text2: 'some more text'
+			});
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n2 ./log/general/details.json.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+					try {
+						stdout = JSON.parse(stdout);
+					} catch (ex) { return reject(ex); }
+					expect(stdout).to.have.property('level', 'debug');
+					expect(stdout.data).to.eql({
+						name: 'foo',
+						ID: 'test ID'
+					});
+					expect(stdout.details).to.eql({
+						text: 'not long text',
+						text2: 'some more text',
+						text3: 'some other text'
+					});
+					return resolve();
+				});
+			}, 1000);
+		});
+	});
+
+	it('should log with input of message, data, details', function() {
 		this.timeout(3000);
 		let client =  new ZSLogger.LoggerClient();
 		return client
@@ -280,6 +349,24 @@ describe('zs-logger', () => {
 					expect(entries[1]).to.have.property('message', 'second message');
 					expect(entries[2]).to.have.property('level', 'error');
 
+					return resolve();
+				});
+			}, 1000);
+		});
+	});
+
+	it('should log timestamp, level and subsystem with no logging arguments', () => {
+		globalClient.info();
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n6 ./log/general/main.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+
+					expect(stdout).to.contain(`timestamp: `);
+					expect(stdout).to.contain('subsystem: general');
+					expect(stdout).to.contain('level: info');
+					expect(stdout).to.contain('message: ');
 					return resolve();
 				});
 			}, 1000);
