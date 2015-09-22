@@ -6,24 +6,46 @@ const _ = require('lodash');
 const promisify = require('es6-promisify');
 const expect = require('chai').expect;
 const ZSLogger = require('../lib/index');
-const Logger = require('../lib/logger')
-const XError = require('xerror');
+const Logger = require('../lib/logger');
 
 const now = moment();
 const dateStr = now.format('YYYY-MM-DD');
 const stat = promisify(fs, stat);
 const readdir = promisify(fs.readdir);
 const exec = require('child_process').exec;
+let globalClient;
 
 describe('zs-logger', () => {
 
 	before(() => {
-		return ZSLogger.initServer();
+		globalClient = ZSLogger.init();
+		return new Promise((resolve) => {
+			setTimeout(resolve, 1000);
+		});
+	});
+
+	it(`shouldn't create main log for keepDays,main = 0`, () => {
+		let client = new ZSLogger.LoggerClient({
+			subsystem: 'temp',
+			keepDays: {
+				main: 0
+			}
+		});
+		client.info(`This shouldn't be logged.`);
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				readdir(path.resolve('./log/temp'))
+					.then(files => {
+						expect(files).to.not.include(`main.log.${dateStr}`);
+						resolve();
+					})
+					.catch(reject);
+			}, 1000);
+		});
 	});
 
 	it('should log info to main.log, main.json.log, details.json.log and in expected format', function() {
-		let client = new ZSLogger.LoggerClient({});
-		client.info('This is a message', { key: 'some data' });
+		globalClient.info('This is a message', { key: 'some data' });
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
@@ -55,10 +77,95 @@ describe('zs-logger', () => {
 
 	});
 
+	it('should log an entry of level silly', function() {
+		this.timeout(3000);
+		globalClient.silly('A silly message', { key: 'silly data' });
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n3 ./log/general/details.json.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+					let lines = stdout.split(`${os.EOL}`);
+					let line = _.find(lines, line => !_.isEmpty(line));
+					try {
+						line = JSON.parse(line);
+					} catch (ex) { return reject(ex); }
+					expect(line).to.have.property('level', 'silly');
+					expect(line).to.have.property('message', 'A silly message');
+					expect(line.data.key).to.equal('silly data');
+					return resolve();
+				});
+			}, 2000);
+		});
+	});
+
+	it('should log an entry of level debug', () => {
+		globalClient.debug('A debug message', { key: 'debug data' });
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n3 ./log/general/details.json.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+					let lines = stdout.split(`${os.EOL}`);
+					let line = _.find(lines, line => !_.isEmpty(line));
+					try {
+						line = JSON.parse(line);
+					} catch (ex) { return reject(ex); }
+					expect(line).to.have.property('level', 'debug');
+					expect(line).to.have.property('message', 'A debug message');
+					expect(line.data.key).to.equal('debug data');
+					return resolve();
+				});
+			}, 1000);
+		});
+	});
+
+	it('should log an entry of level warn', () => {
+		globalClient.warn('A warn message', { key: 'warn data' });
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n3 ./log/general/details.json.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+					let lines = stdout.split(`${os.EOL}`);
+					let line = _.find(lines, line => !_.isEmpty(line));
+					try {
+						line = JSON.parse(line);
+					} catch (ex) { return reject(ex); }
+					expect(line).to.have.property('level', 'warn');
+					expect(line).to.have.property('message', 'A warn message');
+					expect(line.data.key).to.equal('warn data');
+					return resolve();
+				});
+			}, 1000);
+		});
+	});
+
+	it('should log an entry of level verbose', () => {
+		globalClient.verbose('A verbose message', { key: 'verbose data' });
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n3 ./log/general/details.json.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+					let lines = stdout.split(`${os.EOL}`);
+					let line = _.find(lines, line => !_.isEmpty(line));
+					try {
+						line = JSON.parse(line);
+					} catch (ex) { return reject(ex); }
+					expect(line).to.have.property('level', 'verbose');
+					expect(line).to.have.property('message', 'A verbose message');
+					expect(line.data.key).to.equal('verbose data');
+					return resolve();
+				});
+			}, 1000);
+		});
+	});
+
+
 	it('should log error to all log files', function() {
 		this.timeout(3000);
-		let client = new ZSLogger.LoggerClient({});
-		return client
+		return globalClient
 			.error(new Error('An error'))
 			.then(() => {
 				return new Promise((resolve, reject) => {
@@ -74,13 +181,13 @@ describe('zs-logger', () => {
 								resolve();
 							})
 							.catch(reject);
-					}, 1000);					
+					}, 1000);
 				});
 			});
 	});
 
 	it('should log error in sub folder /test for sub system `test`', () => {
-		let client = new ZSLogger.LoggerClient({ subSystem: 'test' });
+		let client = new ZSLogger.LoggerClient({ subsystem: 'test' });
 		return client
 			.error(new Error('Another error'))
 			.then(() => {
@@ -117,7 +224,7 @@ describe('zs-logger', () => {
 							} catch (ex) { return reject(ex); }
 							expect(stdout).to.have.property('level', 'info');
 							expect(stdout).to.have.property('message', 'warn: This is a message');
-							expect(stdout).to.have.property('subSystem', 'general');
+							expect(stdout).to.have.property('subsystem', 'general');
 							expect(stdout.data.ID).to.equal('some ID');
 							expect(stdout.details.text).to.equal('some details');
 							return resolve();
@@ -129,7 +236,7 @@ describe('zs-logger', () => {
 
 	it('should use log level info when logging without level', function() {
 		this.timeout(3000);
-		let client =  new ZSLogger.LoggerClient();		
+		let client =  new ZSLogger.LoggerClient();
 		return client
 			.log({
 				ID: 'some ID'
@@ -143,7 +250,7 @@ describe('zs-logger', () => {
 								stdout = JSON.parse(stdout);
 							} catch (ex) { return reject(ex); }
 							expect(stdout).to.have.property('level', 'info');
-							expect(stdout).to.have.property('subSystem', 'general');
+							expect(stdout).to.have.property('subsystem', 'general');
 							expect(stdout.data.ID).to.equal('some ID');
 							return resolve();
 						});
@@ -190,7 +297,7 @@ describe('logger', () => {
 		}, {
 			level: 'warn',
 			message: 'This is a warning',
-			subSystem: 'test',
+			subsystem: 'test',
 			data: {
 				field: 'some data'
 			},
@@ -201,25 +308,25 @@ describe('logger', () => {
 
 		expect(entry).to.have.property('level', 'info');
 		expect(entry).to.have.property('message', 'This is a warning');
-		expect(entry).to.have.property('subSystem', 'test');
+		expect(entry).to.have.property('subsystem', 'test');
 		expect(entry.data.field).to.equal('some data');
 		expect(entry.details.field).to.equal('some details');
 	});
 
 	it('should return valid log entry for error and data', () => {
-		let logger = new Logger({ subSystem: 'test2' });
+		let logger = new Logger({ subsystem: 'test2' });
 
 		let entry = logger._makeLogEntry({
 			level: 'error'
-		}, new Error('A test error'), { ID: 'some ID'});
+		}, new Error('A test error'), { ID: 'some ID' });
 
 		expect(entry).to.have.property('level', 'error');
-		expect(entry).to.have.property('subSystem', 'test2');
+		expect(entry).to.have.property('subsystem', 'test2');
 		expect(entry.data.ID).to.equal('some ID');
 	});
 
 	it('should return valid log entry for level, data, details', () => {
-		let logger = new Logger({ subSystem: 'test2' });
+		let logger = new Logger({ subsystem: 'test2' });
 
 		let entry = logger._makeLogEntry({
 			level: 'info'
@@ -227,7 +334,7 @@ describe('logger', () => {
 
 		expect(entry).to.have.property('level', 'info');
 		expect(entry).to.not.have.property('message');
-		expect(entry).to.have.property('subSystem', 'test2');
+		expect(entry).to.have.property('subsystem', 'test2');
 		expect(entry.data.ID).to.equal('some ID');
 		expect(entry.details.text).to.equal('some details');
 	});
@@ -241,10 +348,8 @@ describe('logger', () => {
 
 		expect(entry).to.have.property('level', 'warn');
 		expect(entry).to.have.property('message', 'This is a message');
-		expect(entry).to.have.property('subSystem', 'general');
+		expect(entry).to.have.property('subsystem', 'general');
 		expect(entry.data.ID).to.equal('some ID');
 		expect(entry.details.text).to.equal('some details');
 	});
 });
-
-
