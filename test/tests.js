@@ -12,16 +12,21 @@ const now = moment();
 const dateStr = now.format('YYYY-MM-DD');
 const stat = promisify(fs, stat);
 const readdir = promisify(fs.readdir);
+const rimraf = promisify(require('rimraf'));
 const exec = require('child_process').exec;
-let globalClient;
 
 describe('zs-logger', () => {
 
-	before(() => {
-		globalClient = ZSLogger.init();
-		return new Promise((resolve) => {
-			setTimeout(resolve, 1000);
-		});
+	before(function() {
+		this.timeout(5000);
+
+		return rimraf(path.resolve('./log/'))
+			.then(ZSLogger.initServer)
+			.then(() => {
+				return new Promise((resolve) => {
+					setTimeout(resolve, 4000);
+				});
+			});
 	});
 
 	it(`shouldn't create main log for keepDays,main = 0`, () => {
@@ -45,7 +50,7 @@ describe('zs-logger', () => {
 	});
 
 	it('should log info to main.log, main.json.log, details.json.log and in expected format', function() {
-		globalClient.info('This is a message', { key: 'some data' });
+		ZSLogger.info('This is a message', { key: 'some data' });
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
@@ -77,16 +82,18 @@ describe('zs-logger', () => {
 
 	});
 
-	it('should log an entry of level error', () => {
-		globalClient.log('error', new Error('A test error'));
+	it('should log an entry of level error', function() {
+		this.timeout(2000);
+		ZSLogger.log('error', new Error('A test error'));
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
-				exec(`tail -n6 ./log/general/main.log.${dateStr}`, (err, stdout) => {
+				exec(`tail -n5 ./log/general/main.log.${dateStr}`, (err, stdout) => {
 					if (err) return reject(err);
 					expect(stdout).to.contain('level: error');
 					expect(stdout).to.contain('subsystem', 'general');
 					expect(stdout).to.contain('timestamp');
+					expect(stdout).to.not.contain('message');
 					return resolve();
 				});
 			}, 1000);
@@ -95,7 +102,7 @@ describe('zs-logger', () => {
 
 	it('should log an entry of level silly', function() {
 		this.timeout(3000);
-		globalClient.silly('A silly message', { key: 'silly data' });
+		ZSLogger.silly('A silly message', { key: 'silly data' });
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
@@ -116,7 +123,7 @@ describe('zs-logger', () => {
 	});
 
 	it('should log an entry of level debug', () => {
-		globalClient.debug('A debug message', { key: 'debug data' });
+		ZSLogger.debug('A debug message', { key: 'debug data' });
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
@@ -137,7 +144,7 @@ describe('zs-logger', () => {
 	});
 
 	it('should log an entry of level warn', () => {
-		globalClient.warn('A warn message', { key: 'warn data' });
+		ZSLogger.warn('A warn message', { key: 'warn data' });
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
@@ -158,7 +165,7 @@ describe('zs-logger', () => {
 	});
 
 	it('should log an entry of level verbose', () => {
-		globalClient.verbose('A verbose message', { key: 'verbose data' });
+		ZSLogger.verbose('A verbose message', { key: 'verbose data' });
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
@@ -181,7 +188,7 @@ describe('zs-logger', () => {
 
 	it('should log error to all log files', function() {
 		this.timeout(3000);
-		return globalClient
+		return ZSLogger
 			.error(new Error('An error'))
 			.then(() => {
 				return new Promise((resolve, reject) => {
@@ -203,7 +210,7 @@ describe('zs-logger', () => {
 	});
 
 	it('should ignore errors other than first when logging multiple', () => {
-		return globalClient
+		return ZSLogger
 			.error(new Error('first error'), new Error('second error'), new Error('third error'))
 			.then(() => {
 				return new Promise((resolve, reject) => {
@@ -213,6 +220,7 @@ describe('zs-logger', () => {
 							expect(stdout).to.contain('first error');
 							expect(stdout).to.not.contain('second error');
 							expect(stdout).to.not.contain('third error');
+							expect(stdout).to.not.contain('message');
 							return resolve();
 						});
 					}, 1000);
@@ -244,7 +252,7 @@ describe('zs-logger', () => {
 	});
 
 	it('should merge multiple objects into details field', () => {
-		globalClient
+		ZSLogger
 			.debug({
 				name: 'foo',
 				ID: 'test ID'
@@ -356,7 +364,7 @@ describe('zs-logger', () => {
 	});
 
 	it('should log timestamp, level and subsystem with no logging arguments', () => {
-		globalClient.info();
+		ZSLogger.info();
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
@@ -366,7 +374,7 @@ describe('zs-logger', () => {
 					expect(stdout).to.contain(`timestamp: `);
 					expect(stdout).to.contain('subsystem: general');
 					expect(stdout).to.contain('level: info');
-					expect(stdout).to.contain('message: ');
+					expect(stdout).to.not.contain('message: ');
 					return resolve();
 				});
 			}, 1000);
@@ -409,6 +417,7 @@ describe('logger', () => {
 
 		expect(entry).to.have.property('level', 'error');
 		expect(entry).to.have.property('subsystem', 'test2');
+		expect(entry).to.not.have.property('message');
 		expect(entry.data.ID).to.equal('some ID');
 	});
 
