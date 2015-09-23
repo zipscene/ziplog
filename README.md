@@ -11,6 +11,22 @@ On cluster master:
 ```javascript
 const logger = require('zs-logger');
 logger.initServer();
+
+// log of level info
+logger.info('This is a message');
+
+// log of level error
+logger.error(new Error('A error'));
+```
+On cluster slaves:
+```javascript
+const logger = require('zs-logger');
+logger.initClient();
+logger.info('This is a message');
+
+// Create an instance of client when you want to log with a specific subsystem
+const client = new logger.LoggerClient({ subsystem: 'mainApp' });
+client.info('This is a message');
 ```
 When you initialize a zs-logger server. It will start the server on port `31094` locally and creates a directory called `/combined` under path `./log/. By default, all logs from all sub systems will be saved in this directory. It contains following log files:
 * main.log - Contains newline-separated timestamps, levels, and log messages from entries. This is in a human-readable non-json format. It contains all log levels above the minimum logged level.
@@ -101,19 +117,9 @@ message: This is a message
 {"level":"info","message":"This is a message","timestamp":"Mon, 21 Sep 2015 19:07:37 GMT","subsystem":"general","data":{"ID":"some ID"},"details":{"text":"some details"}}
 
 ```
+Same applies to `logger.initClient()`
 
-Then, you could create a LoggerClient instance on either cluster master or workers like this:
-```javascript
-const client = new logger.LoggerClient();
-
-// logs an error
-client.error('A bad error occurred!', myError);
-
-// logs a regular info
-client.info('queue initialized');
-```
-
-`LoggerClient` has following methods:
+zs-logger has following methods:
 * log
 * silly
 * debug

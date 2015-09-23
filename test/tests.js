@@ -381,6 +381,23 @@ describe('zs-logger', () => {
 		});
 	});
 
+	it('should log to error-details.log in right format', () => {
+		ZSLogger.error(new Error('A test error'));
+
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				exec(`tail -n22 ./log/general/error-details.log.${dateStr}`, (err, stdout) => {
+					if (err) return reject(err);
+
+					expect(stdout).to.contain(`{${os.EOL}\t"level": "error"`);
+					expect(stdout).to.contain(`\t"subsystem": "general"${os.EOL}\t"data": {
+\t}${os.EOL}\t"details": {${os.EOL}\t"stack": "Error: A test error${os.EOL}\t    `);
+					return resolve();
+				});
+			}, 1000);
+		});
+	});
+
 });
 
 describe('logger', () => {
