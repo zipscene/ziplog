@@ -1,22 +1,48 @@
 {
   "name": "zs-logger",
-  "version": "0.0.16",
-  "private": true,
-  "description": "lgr",
-  "main": "./plugin.js",
+  "version": "0.0.1",
+  "description": "Distributed logging library",
+  "main": "./dist/lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git@git.zipscene.com:zsapiplugins/zs-logger.git"
+    "url": "git@git.zipscene.com:zsapilibs/zs-logger.git"
   },
   "scripts": {
-    "lint": "node node_modules/zs-linter/scripts/zslint"
+    "lint": "node ./node_modules/.bin/eslint . || exit 0",
+    "docs": "node ./node_modules/.bin/yuidoc .",
+    "test": "npm run-script build && node ./node_modules/.bin/mocha ./dist/test -R spec",
+    "build": "rm -rf dist && ./node_modules/.bin/broccoli build dist && rm -rf tmp",
+    "prepublish": "npm run-script build && npm run-script docs"
   },
   "dependencies": {
-    "winston": "^0.7.3",
-    "zs-linter": "git+ssh://git@git.zipscene.com:zsapicore/zs-linter.git",
-    "zsapi-plugin-base": "git+ssh://git@git.zipscene.com:zsapicore/zsapi-plugin-base.git#v0.0.2",
-    "zs-jq-stub": "git+ssh://git@git.zipscene.com:zsapilibs/zs-jq-stub.git#v0.0.2",
-    "zs-error": "git+ssh://git@git.zipscene.com:zsapicore/zs-error.git#v0.0.11"
+    "babel-runtime": "5.8.20",
+    "lodash": "^3.10.1",
+    "mkdirp": "^0.5.1",
+    "winston": "^1.0.1",
+    "winston-nssocket": "^0.1.0",
+    "winstond": "0.0.2",
+    "xerror": "^1.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "broccoli": "^0.16.8",
+    "broccoli-babel-transpiler": "^5.4.5",
+    "broccoli-cli": "^1.0.0",
+    "broccoli-merge-trees": "^0.2.3",
+    "broccoli-static-compiler": "^0.2.2",
+    "broccoli-wrap": "0.0.2",
+    "chai": "^3.2.0",
+    "es6-promise": "^3.0.2",
+    "es6-promisify": "^3.0.0",
+    "eslint": "^1.3.1",
+    "mocha": "^2.3.2",
+    "moment": "^2.10.6",
+    "pasync": "^1.4.0",
+    "rimraf": "^2.4.3",
+    "source-map-support": "^0.3.2",
+    "xerror": "^1.0.0",
+    "yuidocjs": "^0.9.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.zipscene.com/"
+  }
 }
