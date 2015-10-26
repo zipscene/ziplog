@@ -432,9 +432,10 @@ describe('logger', () => {
 			level: 'error'
 		}, new Error('A test error'), { ID: 'some ID' });
 
+		console.log(entry);
 		expect(entry).to.have.property('level', 'error');
 		expect(entry).to.have.property('subsystem', 'test2');
-		expect(entry).to.not.have.property('message');
+		expect(entry.message).to.not.exist;
 		expect(entry.data.ID).to.equal('some ID');
 	});
 
