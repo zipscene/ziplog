@@ -390,8 +390,8 @@ describe('zs-logger', () => {
 					if (err) return reject(err);
 
 					expect(stdout).to.contain(`{${os.EOL}\t"level": "error"`);
-					expect(stdout).to.contain(`\t"subsystem": "general"${os.EOL}\t"data": {
-\t}${os.EOL}\t"details": {${os.EOL}\t"stack": "Error: A test error${os.EOL}\t    `);
+					expect(stdout).to.contain(`\t"subsystem": "general"${os.EOL}\t"details": {
+\t"error": {\n\t"stack": "Error: A test error\n\t `);
 					return resolve();
 				});
 			}, 1000);
@@ -432,7 +432,6 @@ describe('logger', () => {
 			level: 'error'
 		}, new Error('A test error'), { ID: 'some ID' });
 
-		console.log(entry);
 		expect(entry).to.have.property('level', 'error');
 		expect(entry).to.have.property('subsystem', 'test2');
 		expect(entry.message).to.not.exist;
