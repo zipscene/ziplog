@@ -1,6 +1,6 @@
 {
   "name": "zs-logger",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Distributed logging library",
   "main": "./dist/lib/index.js",
   "repository": {
