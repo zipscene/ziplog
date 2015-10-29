@@ -21,15 +21,11 @@ describe('zs-logger', () => {
 		this.timeout(5000);
 
 		return rimraf(path.resolve('./log/'))
-			.then(ZSLogger.initServer)
-			.then(() => {
-				return new Promise((resolve) => {
-					setTimeout(resolve, 4000);
-				});
-			});
+			.then(ZSLogger.initServer);
 	});
 
-	it(`shouldn't create main log for keepDays,main = 0`, () => {
+	it(`shouldn't create main log for keepDays,main = 0`, function() {
+		this.timeout(10000);
 		let client = new ZSLogger.LoggerClient({
 			subsystem: 'temp',
 			keepDays: {
@@ -45,7 +41,7 @@ describe('zs-logger', () => {
 						resolve();
 					})
 					.catch(reject);
-			}, 1000);
+			}, 6000);
 		});
 	});
 
