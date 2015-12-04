@@ -89,7 +89,7 @@ describe('zs-logger', () => {
 					expect(stdout).to.contain('level: error');
 					expect(stdout).to.contain('subsystem', 'general');
 					expect(stdout).to.contain('timestamp');
-					expect(stdout).to.not.contain('message');
+					expect(stdout).to.contain('message');
 					return resolve();
 				});
 			}, 1000);
@@ -216,7 +216,7 @@ describe('zs-logger', () => {
 							expect(stdout).to.contain('first error');
 							expect(stdout).to.not.contain('second error');
 							expect(stdout).to.not.contain('third error');
-							expect(stdout).to.not.contain('message');
+							expect(stdout).to.contain('message');
 							return resolve();
 						});
 					}, 1000);
@@ -370,7 +370,7 @@ describe('zs-logger', () => {
 					expect(stdout).to.contain(`timestamp: `);
 					expect(stdout).to.contain('subsystem: general');
 					expect(stdout).to.contain('level: info');
-					expect(stdout).to.not.contain('message: ');
+					expect(stdout).to.contain('message: ');
 					return resolve();
 				});
 			}, 1000);
@@ -382,12 +382,12 @@ describe('zs-logger', () => {
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
-				exec(`tail -n22 ./log/general/error-details.log.${dateStr}`, (err, stdout) => {
+				exec(`tail -n23 ./log/general/error-details.log.${dateStr}`, (err, stdout) => {
 					if (err) return reject(err);
 
-					expect(stdout).to.contain(`{${os.EOL}\t"level": "error"`);
-					expect(stdout).to.contain(`\t"subsystem": "general"${os.EOL}\t"details": {
-\t"error": {\n\t"stack": "Error: A test error\n\t `);
+					expect(stdout).to.contain('\t"level": "error"');
+					expect(stdout).to.contain(`\n\t"subsystem": "general"\n\t"details": {
+\t"error": {\n\t"message": "A test error"\n\t"stack": "Error: A test error\n\t`);
 					return resolve();
 				});
 			}, 1000);
@@ -430,7 +430,7 @@ describe('logger', () => {
 
 		expect(entry).to.have.property('level', 'error');
 		expect(entry).to.have.property('subsystem', 'test2');
-		expect(entry.message).to.not.exist;
+		expect(entry).to.have.property('message');
 		expect(entry.data.ID).to.equal('some ID');
 	});
 
