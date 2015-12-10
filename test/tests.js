@@ -382,7 +382,7 @@ describe('zs-logger', () => {
 
 		return new Promise((resolve, reject) => {
 			setTimeout(() => {
-				exec(`tail -n23 ./log/general/error-details.log.${dateStr}`, (err, stdout) => {
+				exec(`tail -n24 ./log/general/error-details.log.${dateStr}`, (err, stdout) => {
 					if (err) return reject(err);
 
 					expect(stdout).to.contain('\t"level": "error"');
