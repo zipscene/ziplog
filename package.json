@@ -1,6 +1,6 @@
 {
   "name": "zs-logger",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Distributed logging library",
   "main": "./dist/lib/index.js",
   "repository": {
@@ -16,8 +16,12 @@
   },
   "dependencies": {
     "babel-runtime": "5.8.20",
+    "es6-promisify": "^3.0.0",
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
+    "moment": "^2.10.6",
+    "pasync": "^1.4.0",
+    "rimraf": "^2.4.3",
     "winston": "^2.1.1",
     "winston-nssocket": "^0.1.0",
     "winstond": "0.0.2",
@@ -33,14 +37,9 @@
     "broccoli-wrap": "0.0.2",
     "chai": "^3.2.0",
     "es6-promise": "^3.0.2",
-    "es6-promisify": "^3.0.0",
     "eslint": "^1.3.1",
     "mocha": "^2.3.2",
-    "moment": "^2.10.6",
-    "pasync": "^1.4.0",
-    "rimraf": "^2.4.3",
     "source-map-support": "^0.3.2",
-    "xerror": "^1.0.0",
     "yuidocjs": "^0.9.0"
   },
   "publishConfig": {
