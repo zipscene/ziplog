@@ -26,6 +26,7 @@
     "winston-nssocket": "^0.1.0",
     "winstond": "0.0.2",
     "xerror": "^1.0.0",
+    "zs-objtools": "^1.4.0",
     "zs-winston-daily-rotate-file": "0.0.1"
   },
   "devDependencies": {
