@@ -1,17 +1,17 @@
-# zs-logger
+# ziplog
 
 Distributed logging library that works with clusters. It also supports logging for sub systems.
 
 ## Install
 ```bash
-$ npm install zs-logger
+$ npm install ziplog
 ```
 
 ## Usage
 - On cluster master:
 
 ```javascript
-const logger = require('zs-logger');
+const logger = require('ziplog');
 logger.initServer();
 
 // log of level info
@@ -24,7 +24,7 @@ logger.error(new Error('A error'));
 - On cluster slaves:
 
 ```javascript
-const logger = require('zs-logger');
+const logger = require('ziplog');
 logger.initClient();
 logger.info('This is a message');
 
@@ -34,7 +34,7 @@ client.info('This is a message');
 ```
 
 ## Logs
-When you initialize a zs-logger server it starts the server on port `31094` locally and creates a directory called `/combined` under path `./log`.  By default, all logs from all sub systems will be saved in this directory. It contains following log files:
+When you initialize a ziplog server it starts the server on port `31094` locally and creates a directory called `/combined` under path `./log`.  By default, all logs from all sub systems will be saved in this directory. It contains following log files:
 
 ### main.log
 - Contains newline-separated timestamps, levels, and log messages from entries. This is in a human-readable non-json format. It contains all log levels above the minimum logged level.
@@ -139,7 +139,7 @@ message: This is a message
 
 Same applies to `logger.initClient()`
 
-zs-logger has following methods:
+ziplog has following methods:
 * `log()`
 * `silly()`
 * `debug()`
