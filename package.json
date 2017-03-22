@@ -1,6 +1,6 @@
 {
   "name": "ziplog",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "description": "Distributed logging library",
   "main": "./dist/lib/index.js",
   "repository": {
