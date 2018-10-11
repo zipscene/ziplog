@@ -1,149 +1,94 @@
-# ziplog
+# Ziplog
 
-Distributed logging library that works with clusters. It also supports logging for sub systems.
+Ziplog is a simple, flexible logger, built to handle console logging in a multithreaded environment.
 
-## Install
-```bash
-$ npm install ziplog
-```
-
-## Usage
-- On cluster master:
+## Simple usage
 
 ```javascript
 const logger = require('ziplog');
-logger.initServer();
 
-// log of level info
-logger.info('This is a message');
+logger.info('Test log message', { logType: 'module-1' }, { lineNum: 277 });
 
-// log of level error
-logger.error(new Error('A error'));
+logger.error(new Error('Test error'));
 ```
 
-- On cluster slaves:
+The output of these log commands:
+
+```
+{
+    "app": "ziplog",
+    "log": "module-1",
+    "lvl": "INFO",
+    "@timestamp": "2018-10-11T15:07:42.076Z",
+    "message": "Test log message",
+    "data": {
+        "lineNum": 277
+    }
+}
+{
+    "app": "ziplog",
+    "log": "general",
+    "lvl": "ERROR",
+    "@timestamp": "2018-10-11T15:07:42.077Z",
+    "error": {
+        "message": "Test error"
+    },
+    "message": "Test error"
+}
+```
+
+By default, the log levels in decreasing order of severity are [ 'error', 'warn', 'info', 'debug', 'trace' ].
+Each of these levels becomes a function on the logger, accepting a variatic number of arguments that may
+include a mix of log messages, errors, and arbitrary data objects. The `logType` parameter is a special data
+object key that is assigned to the `log` key of the log output.
+
+The logger can be intialized with custom configuration as follows:
 
 ```javascript
 const logger = require('ziplog');
-logger.initClient();
-logger.info('This is a message');
 
-// Create an instance of client when you want to log with a specific subsystem
-const client = new logger.LoggerClient({ subsystem: 'mainApp' });
-client.info('This is a message');
+logger.initStandalone({
+	// Override for the supported log levels, sorted by decreasing severity. Each of these becomes a named log function.
+	logLevels: [ 'error', 'info', 'silly' ],
+	// Any log message less severe than this level will be ignored.
+	minLogLevel: [ 'info' ],
+	// Suppress the stack trace from logged errors.
+	suppressErrorStack: true,
+	// Explicity set the 'app' field on log messages. This is pulled from package.json by default.
+	appName: 'ziplog-test',
+	// Data-writeable stream to write log entries to. Data is written to stdout by default.
+	writeStream: process.stderr
+});
 ```
 
-## Logs
-When you initialize a ziplog server it starts the server on port `31094` locally and creates a directory called `/combined` under path `./log`.  By default, all logs from all sub systems will be saved in this directory. It contains following log files:
+## Multithreaded logging
 
-### main.log
-- Contains newline-separated timestamps, levels, and log messages from entries. This is in a human-readable non-json format. It contains all log levels above the minimum logged level.
+When logging from multiple node threads simultaneously, the messages as written to standard output can become interwoven
+and jumbled. Ziplog provides a log server and client system to ensure this doesn't happen. Under this architecture, the
+singleton log server is solely responsible for logging to the console, and clients send their messages to it over
+UNIX sockets. This setup is initialized as follows:
 
-```txt
-timestamp: Mon, 21 Sep 2015 19:07:35 GMT
-level: error
-subsystem: general
+```javascript
+// Main file
+const logger = require('ziplog');
+const child_process = require('child-process');
 
-timestamp: Mon, 21 Sep 2015 19:07:37 GMT
-level: info
-subsystem: general
-message: This is a message
+logger.initServer({ /* logger config */ })
+	.then(() => {
+		logger.info('Log from main');
+		child_process.fork('subprocess.js');
+	});
 ```
 
-### error.log
-- Contains newline-separated timestamps, levels, and log messages from entries. This is in the same format as main.log, but only contains errors.
+```javascript
+// subprocess.js
+const logger = require('ziplog');
 
-```txt
-timestamp: Mon, 21 Sep 2015 19:07:35 GMT
-level: error
-subsystem: general
-message: This is a message
+logger.initClient({ /* logger config */ })
+	.then(() => {
+		logger.info('Log from sup process');
+	});
 ```
 
-### error-details.log
-- Contains all information from all log entries of 'error' level. This does not have to be one entry per line, it should be human readable. It's perfectly acceptable for stack traces to span multiple lines.
-
-```json
-{
-	"level": "error"
-	"timestamp": "Mon, 21 Sep 2015 19:07:35 GMT"
-	"subsystem": "general"
-	"data": {
-	}
-	"details": {
-	"stack": "Error: An error
-		at Context.<anonymous> (test/tests.js:68:11)
-		at callFn (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:251:21)
-		at Test.Runnable.run (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:244:7)
-		at Runner.runTest (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:374:10)
-		at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:452:12
-		at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:299:14)
-		at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:309:7
-		at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:248:23)
-		at Object._onImmediate (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:276:5)
-		at processImmediate [as _immediateCallback] (timers.js:345:15)"
-	}
-}
-
-{
-	"level": "error"
-	"timestamp": "Mon, 21 Sep 2015 19:07:36 GMT"
-	"subsystem": "test"
-	"data": {
-	}
-	"details": {
-	"stack": "Error: Another error
-		at Context.<anonymous> (test/tests.js:91:11)
-		at callFn (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:251:21)
-		at Test.Runnable.run (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:244:7)
-		at Runner.runTest (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:374:10)
-		at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:452:12
-		at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:299:14)
-		at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:309:7
-		at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:248:23)
-		at Object._onImmediate (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:276:5)
-		at processImmediate [as _immediateCallback] (timers.js:345:15)"
-	}
-}
-```
-
-### main.json.log
-- Contains all information on all log entries, except `details`, in a newline-separated-json format (where the format in the same format as a log entry, with the addition of a `timestamp` property).
-
-```json
-{"level":"error","timestamp":"Mon, 21 Sep 2015 19:07:35 GMT","subsystem":"general","data":{}}
-
-{"level":"error","timestamp":"Mon, 21 Sep 2015 19:07:36 GMT","subsystem":"test","data":{}}
-
-{"level":"info","message":"This is a message","timestamp":"Mon, 21 Sep 2015 19:07:37 GMT","subsystem":"general","data":{"ID":"some ID"}}
-```
-
-### error-details.json.log
-- Same format as `main.json.log`, but only contains errors, and does include the `details`.
-
-```json
-{"level":"error","timestamp":"Mon, 21 Sep 2015 19:07:35 GMT","subsystem":"general","data":{},"details":{"stack":"Error: An error\n    at Context.<anonymous> (test/tests.js:68:11)\n    at callFn (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:251:21)\n    at Test.Runnable.run (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:244:7)\n    at Runner.runTest (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:374:10)\n    at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:452:12\n    at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:299:14)\n    at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:309:7\n    at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:248:23)\n    at Object._onImmediate (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:276:5)\n    at processImmediate [as _immediateCallback] (timers.js:345:15)"}}
-
-{"level":"error","timestamp":"Mon, 21 Sep 2015 19:07:36 GMT","subsystem":"test","data":{},"details":{"stack":"Error: Another error\n    at Context.<anonymous> (test/tests.js:91:11)\n    at callFn (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:251:21)\n    at Test.Runnable.run (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:244:7)\n    at Runner.runTest (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:374:10)\n    at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:452:12\n    at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:299:14)\n    at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:309:7\n    at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:248:23)\n    at Object._onImmediate (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:276:5)\n    at processImmediate [as _immediateCallback] (timers.js:345:15)"}}
-```
-
-### details.json.log
--  Same format as error-details.json.log, but includes all log entries.
-
-```json
-{"level":"error","timestamp":"Mon, 21 Sep 2015 19:07:36 GMT","subsystem":"test","data":{},"details":{"stack":"Error: Another error\n    at Context.<anonymous> (test/tests.js:91:11)\n    at callFn (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:251:21)\n    at Test.Runnable.run (/Users/yhan/npm/lib/node_modules/mocha/lib/runnable.js:244:7)\n    at Runner.runTest (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:374:10)\n    at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:452:12\n    at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:299:14)\n    at /Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:309:7\n    at next (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:248:23)\n    at Object._onImmediate (/Users/yhan/npm/lib/node_modules/mocha/lib/runner.js:276:5)\n    at processImmediate [as _immediateCallback] (timers.js:345:15)"}}
-
-{"level":"info","message":"This is a message","timestamp":"Mon, 21 Sep 2015 19:07:37 GMT","subsystem":"general","data":{"ID":"some ID"},"details":{"text":"some details"}}
-
-```
-
-Same applies to `logger.initClient()`
-
-ziplog has following methods:
-* `log()`
-* `silly()`
-* `debug()`
-* `verbose()`
-* `info()`
-* `warn()`
-* `error()`
+The socket files for inter-thread communication are stored in a directory named `ziplog-socket` in the project root
+directory. You should add this directory to .gitignore.

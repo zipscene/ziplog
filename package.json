@@ -17,18 +17,14 @@
     "prepublishOnly": "npm run-script docs"
   },
   "dependencies": {
-    "es6-promisify": "^6.0.0",
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
     "moment": "^2.22.2",
     "objtools": "^2.0.1",
     "pasync": "^1.5.0",
     "rimraf": "^2.6.2",
-    "winston": "^3.1.0",
-    "winston-daily-rotate": "0.0.1",
-    "winston-nssocket": "^0.1.0",
-    "winstond": "0.0.2",
-    "xerror": "^1.1.2"
+    "xerror": "^1.1.2",
+    "zstreams": "^4.0.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
