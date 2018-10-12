@@ -1,4 +1,7 @@
 {
+	"parserOptions": {
+		"ecmaVersion": 2017
+	},
 	"env": {
 		"es6": true,
 		"node": true
@@ -52,7 +55,6 @@
 		"no-iterator": 2,
 		"no-labels": 2,
 		"no-lone-blocks": 0,
-		"no-loop-func": 2,
 		"no-multi-spaces": 0,
 		"no-multi-str": 2,
 		"no-native-reassign": 2,
