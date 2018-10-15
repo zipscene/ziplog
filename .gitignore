@@ -13,3 +13,4 @@ project.sublime-workspace
 *.swp
 .configurez.*
 log
+ziplog-socket/
