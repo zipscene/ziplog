@@ -1,6 +1,6 @@
 {
   "name": "ziplog",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Distributed logging library",
   "main": "./lib/index.js",
   "repository": {
@@ -12,28 +12,25 @@
   ],
   "scripts": {
     "lint": "node ./node_modules/.bin/eslint . || exit 0",
-    "docs": "node ./node_modules/.bin/yuidoc .",
-    "test": "node ./node_modules/.bin/mocha ./test -R spec",
-    "prepublishOnly": "npm run-script docs"
+    "test": "node ./node_modules/.bin/mocha ./test -R spec"
   },
   "dependencies": {
-    "lodash": "^4.17.11",
-    "mkdirp": "^0.5.1",
-    "moment": "^2.22.2",
-    "objtools": "^2.0.1",
-    "pasync": "^1.5.0",
-    "xerror": "^1.1.2",
-    "zstreams": "^4.0.0"
+    "lodash": "^4.17.20",
+    "mkdirp": "^1.0.4",
+    "moment": "^2.27.0",
+    "objtools": "^3.0.0",
+    "pasync": "^2.0.1",
+    "xerror": "^2.0.0",
+    "zstreams": "^5.0.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "eslint": "^5.6.1",
-    "mocha": "^5.2.0",
-    "rimraf": "^2.6.2",
-    "yuidocjs": "^0.10.2"
+    "eslint": "^7.7.0",
+    "mocha": "^8.1.2",
+    "rimraf": "^3.0.2"
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 14.0.0"
   }
 }

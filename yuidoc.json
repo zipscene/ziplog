@@ -1,8 +1,0 @@
-{
-	"name": "ziplog",
-	"description": "Distributed logging library",
-	"options": {
-		"outdir": "./docs",
-		"exclude": "dist,tmp,test,node_modules"
-	}
-}
